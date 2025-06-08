@@ -13,14 +13,13 @@ class ProductController extends Controller
 {
     public function __construct(private ProductRepository $repository)
     {
-        // Injeção de dependência do nosso repositório.
+        
     }
 
     public function index(Request $request): JsonResponse
     {
-        // Lida com a busca e com a listagem completa
-        if ($request->has('search')) {
-            $products = $this->repository->searchByNameOrDescription($request->input('search'));
+        if ($request->has('search') && !empty($request->input('search'))) {
+            $products = $this->repository->searchOnOpenSearch($request->input('search'));
         } else {
             $products = $this->repository->findAll();
         }
@@ -30,7 +29,7 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): JsonResponse
     {
-        // A validação já aconteceu automaticamente pelo StoreProductRequest
+
         $product = new Product();
         $product->setName($request->input('name'));
         $product->setDescription($request->input('description'));
@@ -39,7 +38,7 @@ class ProductController extends Controller
 
         $this->repository->save($product);
 
-        return response()->json($product, 201); // 201 Created
+        return response()->json($product, 201); 
     }
 
     public function show(int $id): JsonResponse
@@ -61,7 +60,6 @@ class ProductController extends Controller
             return response()->json(['error' => 'Product not found'], 404);
         }
         
-        // A validação também já aconteceu aqui
         $product->setName($request->input('name'));
         $product->setDescription($request->input('description'));
         $product->setPrice($request->input('price'));
@@ -82,6 +80,6 @@ class ProductController extends Controller
 
         $this->repository->delete($product);
 
-        return response()->json(null, 204); // 204 No Content
+        return response()->json(null, 204); 
     }
 }

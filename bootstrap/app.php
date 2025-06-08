@@ -19,5 +19,6 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withProviders([
         LaravelDoctrine\ORM\DoctrineServiceProvider::class,
+        App\Providers\OpenSearchServiceProvider::class,
     ], true) 
     ->create();
