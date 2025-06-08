@@ -15,8 +15,11 @@ class OpenSearchServiceProvider extends ServiceProvider
     {
         $this->app->singleton(Client::class, function ($app) {
             return ClientBuilder::create()
-                ->setHosts([config('opensearch.host') . ':' . config('opensearch.port')])
-                ->setBasicAuthentication(config('opensearch.user'), config('opensearch.pass'))
+                ->setHosts([[
+                    'host'   => config('opensearch.host'),
+                    'port'   => config('opensearch.port'),
+                    'scheme' => config('opensearch.scheme', 'http'),
+                ]])
                 ->setLogger($app->make('log'))
                 ->build();
         });

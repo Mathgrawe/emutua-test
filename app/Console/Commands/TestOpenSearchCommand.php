@@ -10,17 +10,17 @@ use ReflectionClass;
 class TestOpenSearchCommand extends Command
 {
     /**
-     * O nome e a assinatura do nosso comando no console.
+     * comando no console.
      */
     protected $signature = 'test:opensearch';
 
     /**
-     * A descrição do comando.
+     * Descrição do comando.
      */
     protected $description = 'Testa a indexação e a busca de um documento no OpenSearch.';
 
     /**
-     * Injeta nosso ProductRepository para que possamos usá-lo.
+     * Injeta ProductRepository para que possamos usá-lo.
      */
     public function __construct(private ProductRepository $repository)
     {
@@ -28,18 +28,16 @@ class TestOpenSearchCommand extends Command
     }
 
     /**
-     * A lógica principal do nosso teste.
+     * lógica principal do nosso teste.
      */
     public function handle()
     {
         $this->info('Iniciando teste do OpenSearch...');
 
-        // 1. Criamos um produto FALSO, apenas em memória.
+        // 1. Criar um produto FALSO, apenas em memória.
         $this->info('1. Criando um produto em memória...');
         $product = new Product();
 
-        // Como não estamos salvando no banco, o ID não é gerado.
-        // Vamos usar uma técnica avançada (Reflection) para forçar um ID para o teste.
         $reflectionClass = new ReflectionClass($product);
         $reflectionProperty = $reflectionClass->getProperty('id');
         $reflectionProperty->setAccessible(true);
@@ -53,7 +51,6 @@ class TestOpenSearchCommand extends Command
         $this->comment("-> Produto criado em memória com ID: {$testId}");
 
         // 2. Tenta indexar o produto no OpenSearch.
-        // O método index() é privado, então usamos Reflection para acessá-lo também.
         try {
             $this->info('2. Indexando o produto no OpenSearch...');
             
@@ -69,7 +66,6 @@ class TestOpenSearchCommand extends Command
             return 1;
         }
         
-        // Dá um tempinho para o OpenSearch processar o novo item.
         $this->info('-> Aguardando 2 segundos para o índice atualizar...');
         sleep(2);
 
