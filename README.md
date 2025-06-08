@@ -1,66 +1,137 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Gerenciamento de Produtos - Teste Técnico eMutua Digital
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este projeto é uma aplicação web de gerenciamento de produtos desenvolvida como parte do processo seletivo para Desenvolvedor Full Stack na eMutua Digital. A aplicação consiste em um backend robusto em **PHP/Laravel** com **Doctrine ORM** e uma integração avançada com **OpenSearch**, além de um frontend reativo que será construído em **React/Next.js**.
 
-## About Laravel
+## ✨ Principais Funcionalidades
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* **Backend Completo:** API RESTful para um CRUD (`Create`, `Read`, `Update`, `Delete`) completo de produtos.
+* **Arquitetura Sólida:** Utilização de padrões de projeto como **Repository Pattern** para desacoplar a lógica de negócios do acesso a dados e **Form Requests** para validações seguras e organizadas.
+* **Doctrine ORM:** Integração com o Doctrine como ORM principal para o mapeamento de entidades, cumprindo o requisito central do teste.
+* **Busca Avançada com OpenSearch:** Sincronização automática de dados do banco de dados principal (MySQL) com um índice no OpenSearch para permitir buscas textuais performáticas.
+* **Ambiente Containerizado:** Aplicação 100% containerizada com **Docker** e Laravel Sail, garantindo um ambiente de desenvolvimento consistente e de fácil reprodução.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🛠️ Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* **Backend:** PHP 8.3, Laravel 11
+* **ORM:** Doctrine
+* **Banco de Dados:** MySQL 8.0
+* **Busca:** OpenSearch 2
+* **Frontend (a ser desenvolvido):** React.js / Next.js com Tailwind CSS
+* **Ambiente:** Docker / Laravel Sail
 
-## Learning Laravel
+## 🚀 Instalação e Execução do Ambiente Local
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Siga os passos abaixo para configurar e executar o projeto em seu ambiente local.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**Pré-requisitos:**
+* Docker Desktop instalado e em execução.
+* Git.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**1. Clonar o Repositório**
+```bash
+git clone <URL_DO_SEU_REPOSITORIO>
+cd <NOME_DA_PASTA_DO_PROJETO>
 
-## Laravel Sponsors
+2. Configurar o Ambiente
+O projeto utiliza o Laravel Sail para gerenciar o ambiente Docker.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Criar o arquivo de ambiente (.env)
+Copie o arquivo de exemplo para criar seu arquivo de configuração local.
 
-### Premium Partners
+Bash
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+cp .env.example .env
+Garanta que o arquivo .env contenha as variáveis de banco de dados e OpenSearch que configuramos.
 
-## Contributing
+Subir os Containers Docker
+Este comando irá baixar as imagens necessárias (pode demorar na primeira vez) e iniciar todos os serviços (Laravel, MySQL, OpenSearch).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Bash
 
-## Code of Conduct
+# Se estiver usando Git Bash ou WSL no Windows
+./vendor/bin/sail up -d
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Se estiver usando PowerShell no Windows
+.\vendor\bin\sail up -d
+3. Instalar as Dependências
+Com os containers no ar, execute o Composer para instalar as dependências do PHP.
 
-## Security Vulnerabilities
+Bash
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+docker compose exec laravel.test composer install
+4. Gerar a Chave da Aplicação
 
-## License
+Bash
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+docker compose exec laravel.test php artisan key:generate
+5. Executar as Migrations
+Este comando irá criar a tabela products no banco de dados MySQL.
+
+Bash
+
+docker compose exec laravel.test php artisan migrate
+6. Ajustar Permissões (Caso ocorram erros)
+Em alguns ambientes (especialmente Docker no Windows), podem ocorrer problemas de permissão na pasta storage. Se você enfrentar erros 500, execute o seguinte comando:
+
+Bash
+
+docker compose exec -u root laravel.test chmod -R 777 storage bootstrap/cache
+✅ Pronto! Seu ambiente de backend está configurado e rodando. A API está acessível em http://localhost.
+
+🧪 Testando a API
+Você pode usar uma ferramenta como o Postman, Insomnia ou o curl para testar os endpoints.
+
+Listar Todos os Produtos
+Bash
+
+docker compose exec laravel.test curl http://localhost/api/products
+Resultado esperado (inicialmente): []
+Criar um Novo Produto
+Crie um arquivo payload.json na raiz do projeto com o conteúdo:
+JSON
+
+{
+    "name": "Laptop Gamer Nitro",
+    "description": "Laptop com placa de vídeo dedicada para jogos.",
+    "price": 7800.00,
+    "category": "Eletrônicos"
+}
+Execute o comando POST:
+PowerShell
+
+# No PowerShell, use aspas simples para proteger o '@'
+docker compose exec laravel.test curl -i -X POST -H "Content-Type: application/json" -d '@/var/www/html/payload.json' http://localhost/api/products
+Resultado esperado: HTTP/1.1 201 Created e o JSON do produto criado.
+Atualizar um Produto (Ex: ID 1)
+Modifique o payload.json com os novos dados.
+Execute o comando PUT:
+PowerShell
+
+# No PowerShell
+docker compose exec laravel.test curl -i -X PUT -H "Content-Type: application/json" -d '@/var/www/html/payload.json' http://localhost/api/products/1
+Resultado esperado: HTTP/1.1 200 OK e o JSON do produto atualizado.
+Deletar um Produto (Ex: ID 1)
+Bash
+
+docker compose exec laravel.test curl -i -X DELETE http://localhost/api/products/1
+Resultado esperado: HTTP/1.1 204 No Content
+Testando a Busca com OpenSearch
+Para validar a integração com o OpenSearch de forma isolada (sem depender da camada web), você pode usar o comando Artisan customizado que foi criado (TestOpenSearchCommand.php).
+
+Bash
+
+docker compose exec laravel.test php artisan test:opensearch
+Resultado esperado: Mensagens de sucesso indicando que um documento foi criado, indexado e encontrado no OpenSearch.
+🤔 Decisões de Arquitetura e Desafios
+Durante o desenvolvimento, algumas decisões foram tomadas para garantir um código limpo, manutenível e robusto.
+
+Padrão Repository: A lógica de acesso a dados foi abstraída em uma classe ProductRepository. Isso desacopla o Controller do ORM, facilitando testes e futuras manutenções. O Controller apenas orquestra o fluxo, enquanto o Repository lida com a persistência.
+
+Injeção de Dependência: O EntityManager do Doctrine e o cliente do OpenSearch são injetados via construtor no Repository e no OpenSearchServiceProvider, aproveitando o Service Container do Laravel para gerenciar as instâncias de forma eficiente.
+
+Validação com Form Requests: A validação dos dados de entrada é centralizada na classe StoreProductRequest, mantendo os métodos do Controller enxutos e focados em sua responsabilidade principal.
+
+Desafios de Ambiente: Foi enfrentada uma série de desafios relacionados à configuração do ambiente Docker no Windows, incluindo:
+
+Incompatibilidade de Pacotes: As bibliotecas da comunidade para integração do Doctrine (especialmente laravel-doctrine/migrations) se mostraram incompatíveis com o Laravel 11. A solução foi pivotar para uma abordagem híbrida e estável: utilizar as Migrations nativas do Laravel (robustas e confiáveis) em conjunto com o ORM do Doctrine (cumprindo o requisito do teste).
+Problemas de Permissão: Ocorreram múltiplos erros de permissão de escrita na pasta storage devido à forma como o Docker/WSL2 gerencia os volumes mapeados do Windows. Após diversas tentativas de chown e chmod, a solução final que se provou mais estável nos testes foi isolar a pasta storage em um Volume Nomeado do Docker.
