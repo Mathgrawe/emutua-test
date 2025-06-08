@@ -11,7 +11,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->useStoragePath('/var/www/html/storage');
+        $this->app->useBootstrapPath('/var/www/html/bootstrap');
     }
 
     /**
