@@ -6,6 +6,7 @@ use App\Entities\Product;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use OpenSearch\Client;
+use Illuminate\Support\Facades\Log;
 
 class ProductRepository
 {
@@ -75,6 +76,9 @@ class ProductRepository
 
     public function searchOnOpenSearch(string $term): array
     {
+
+        Log::info("[REPO] Iniciando busca no OpenSearch pelo termo: " . $term);
+
         $params = [
             'index' => 'products',
             'body'  => [
@@ -87,11 +91,25 @@ class ProductRepository
             ]
         ];
 
-        $response = $this->opensearch->search($params);
-
-        // O código abaixo apenas extrai os resultados do formato de resposta do OpenSearch
+        
+        Log::info("[REPO] Parâmetros da busca montados:", $params);
+        
+        try {
+            $response = $this->opensearch->search($params);
+            Log::info("[REPO] Resposta do OpenSearch recebida.");
+        } catch (\Exception $e) {
+            Log::error("[REPO] ERRO ao buscar no OpenSearch: " . $e->getMessage());
+            // Lança a exceção de novo para que o Laravel a capture e mostre o erro 500
+            throw $e;
+        }
+    
+        Log::info("[REPO] Mapeando resultados...");
         return array_map(function ($hit) {
-            return $hit['_source'];
+            // Remove a chave '_source' e retorna apenas os dados do produto
+            $productData = $hit['_source'];
+            // Adiciona o ID do OpenSearch ao resultado para consistência
+            $productData['id'] = $hit['_id']; 
+            return $productData;
         }, $response['hits']['hits']);
     }
 }
