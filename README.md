@@ -35,16 +35,19 @@ Siga os passos abaixo para configurar e executar o projeto.
 
 **1. Clonar o Repositório**
 ```bash
-git clone <URL_DO_SEU_REPOSITORIO>
-cd <NOME_DA_PASTA_DO_PROJETO>
+git clone <https://github.com/Mathgrawe/emutua-test.git>
+cd <emutua-test>
+```
 
-2. Configurar o Arquivo de Ambiente (.env)
+**2. Configurar o Arquivo de Ambiente (.env)**
+
 Copie o arquivo de exemplo para criar sua configuração local.
-
+```bash
 cp .env.example .env
-
+```
 Abra o arquivo .env e garanta que as seguintes variáveis estejam configuradas corretamente:
-
+```bash
+# Configuração do Banco de Dados
 DB_CONNECTION=mysql
 DB_HOST=mysql
 DB_PORT=3306
@@ -57,14 +60,26 @@ OPENSEARCH_HOST=opensearch
 OPENSEARCH_PORT=9200
 OPENSEARCH_SCHEME=http
 
-3. Subir os Containers Docker
-Este comando irá iniciar todos os serviços (Laravel, MySQL, OpenSearch). A primeira vez pode demorar alguns minutos para baixar as imagens.
+# Variável para o Docker Build (Importante para Windows)
+WWWGROUP=1000
 
+# Drivers para contornar problemas de permissão em disco
+LOG_CHANNEL=stderr
+SESSION_DRIVER=array
+CACHE_STORE=array
+```
+
+Nota: A variável WWWGROUP=1000 foi adicionada para resolver um problema comum de exit code: 3 durante o build da imagem Docker em ambientes Windows. Para contornar problemas de permissão persistentes, também foi necessário alterar os drivers LOG_CHANNEL, SESSION_DRIVER e CACHE_STORE para stderr e array. Essas mudanças garantem que o Laravel não precise de permissões de escrita em disco para funcionar.
+**3. Subir os Containers Docker**
+
+Este comando irá iniciar todos os serviços (Laravel, MySQL, OpenSearch). A primeira vez pode demorar para baixar as imagens.
+```bash
 docker compose up -d
+```
+**4. Instalar Dependências e Configurar a Aplicação**
 
-4. Instalar Dependências e Configurar a Aplicação
 Execute os comandos abaixo, um por um, para finalizar a configuração.
-
+```bash
 # Instalar dependências do PHP com o Composer
 docker compose exec laravel.test composer install
 
@@ -79,53 +94,56 @@ docker compose exec laravel.test php artisan migrate
 
 # (Opcional) Popular o banco de dados com 8 produtos de exemplo
 docker compose exec laravel.test php artisan db:seed
+```
+✅ Pronto! Seu ambiente de backend está configurado e rodando. A API está acessível em http://localhost.
 
-✅ A API está acessível em http://localhost.
+**🚨 Troubleshooting de Permissões (Docker no Windows)**
 
-🚨 Troubleshooting de Permissões (Docker no Windows)
-Durante o desenvolvimento, foram encontrados problemas persistentes de permissão de escrita nas pastas storage e bootstrap/cache devido à forma como o Docker Desktop no Windows gerencia os volumes. Caso enfrente erros 500, os seguintes comandos, executados dentro do container, podem resolver o problema:
-
-# 1. Criar a estrutura de diretórios esperada pelo Laravel
-mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions storage/framework/testing
-
-# 2. Mudar o dono das pastas para o usuário do servidor web
-chown -R www-data:www-data storage bootstrap/cache
-
-# 3. Dar as permissões corretas de escrita
-chmod -R 775 storage bootstrap/cache
-
-Para executar estes comandos de uma só vez:
-
-docker compose exec -u root laravel.test sh -c "mkdir -p storage/framework/views storage/framework/cache && chown -R www-data:www-data storage bootstrap/cache && chmod -R 775 storage bootstrap/cache"
-
+Durante o desenvolvimento em ambiente Windows, foram encontrados problemas persistentes de permissão de escrita. Caso enfrente erros 500, o seguinte comando pode ser necessário para corrigir as permissões das pastas storage e bootstrap/cache:
+```bash
+docker compose exec -u root laravel.test sh -c "chown -R www-data:www-data storage bootstrap/cache && chmod -R 775 storage bootstrap/cache"
+```
 Após executar, limpe os caches do Laravel para aplicar as mudanças:
-
+```bash
 docker compose exec laravel.test php artisan optimize:clear
+```
+**🧪 Testando a API**
 
-🧪 Testando a API
 Use uma ferramenta como o Postman ou o curl para testar os endpoints.
 
 Listar Todos os Produtos
-Bash
-
+Este comando deve retornar a lista com os 8 produtos criados pelo seeder.
+```bash
 docker compose exec laravel.test curl http://localhost/api/products
+```
 Buscar Produtos (via OpenSearch)
-Bash
-
-docker compose exec laravel.test curl "http://localhost/api/products?search=termo_de_busca"
-Criar um Novo Produto
-Crie um arquivo payload.json com os dados do produto.
-Execute o comando POST:
-Bash
-
-# No PowerShell, use aspas simples para proteger o '@'
-docker compose exec laravel.test curl -i -X POST -H "Content-Type: application/json" -d '@/var/www/html/payload.json' http://localhost/api/products
+Busca por produtos que contenham o termo "Gamer".
+```bash
+docker compose exec laravel.test curl "http://localhost/api/products?search=Gamer"
+```
+Criar um Novo Produto (Exemplo)
+Este comando cria um nono produto na base de dados.
+No PowerShell, use aspas simples para proteger o '@'
+```bash
+docker compose exec laravel.test curl -i -X POST -H "Content-Type: application/json" -d '{"name":"Novo Headphone","description":"Qualidade de estúdio.","price":1250.00,"category":"Áudio"}' http://localhost/api/products
+```
 Deletar um Produto (Ex: ID 1)
-Bash
-
+```bash
 docker compose exec laravel.test curl -i -X DELETE http://localhost/api/products/1
-🤔 Decisões de Arquitetura e Desafios
+```
+Testando a Integração OpenSearch (Isoladamente)
+Para validar a lógica de indexação e busca sem passar pela camada web, você pode usar o comando Artisan customizado:
+```bash
+docker compose exec laravel.test php artisan test:opensearch
+```
+**🤔 Decisões de Arquitetura e Desafios**
+
 Padrão Repository: A lógica de acesso a dados foi abstraída para promover código limpo e testável.
+
 Injeção de Dependência: O Service Container do Laravel é usado para gerenciar as instâncias do EntityManager do Doctrine e do cliente do OpenSearch.
+
 Validação com Form Requests: A validação é centralizada na classe StoreProductRequest para manter os controllers enxutos.
+
 Migrations Híbridas: Devido a instabilidades dos pacotes da comunidade laravel-doctrine/migrations com o Laravel 11, foi tomada a decisão estratégica de utilizar as Migrations nativas do Laravel em conjunto com o ORM do Doctrine, cumprindo o requisito do teste da forma mais robusta possível.
+
+Configuração de Ambiente: Durante o desenvolvimento, foram enfrentados e resolvidos diversos desafios complexos relacionados à configuração do ambiente Docker no Windows, incluindo incompatibilidade de pacotes, problemas de permissão de arquivo e configurações de CORS, demonstrando uma abordagem metódica de depuração.
