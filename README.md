@@ -1,14 +1,19 @@
-# Gerenciamento de Produtos - Teste Técnico eMutua Digital
+# Gerenciamento de Produtos - API RESTful
 
-Este projeto é uma aplicação web de gerenciamento de produtos desenvolvida como parte do processo seletivo para Desenvolvedor Full Stack na eMutua Digital. A aplicação consiste em um backend robusto em **PHP/Laravel** com **Doctrine ORM** e uma integração avançada com **OpenSearch**, além de um frontend reativo que será construído em **React/Next.js**.
+Este projeto é uma API RESTful completa para gerenciamento de produtos, desenvolvida como parte do processo seletivo para Desenvolvedor Full Stack na eMutua Digital.
+
+A API foi construída com **Laravel 11** e segue princípios de arquitetura de software limpa, utilizando **Doctrine ORM** para mapeamento de objetos, **Repository Pattern** para abstração da camada de dados, e uma integração com **OpenSearch** para buscas avançadas.
 
 ## ✨ Principais Funcionalidades
 
-* **Backend Completo:** API RESTful para um CRUD (`Create`, `Read`, `Update`, `Delete`) completo de produtos.
-* **Arquitetura Sólida:** Utilização de padrões de projeto como **Repository Pattern** para desacoplar a lógica de negócios do acesso a dados e **Form Requests** para validações seguras e organizadas.
-* **Doctrine ORM:** Integração com o Doctrine como ORM principal para o mapeamento de entidades, cumprindo o requisito central do teste.
-* **Busca Avançada com OpenSearch:** Sincronização automática de dados do banco de dados principal (MySQL) com um índice no OpenSearch para permitir buscas textuais performáticas.
-* **Ambiente Containerizado:** Aplicação 100% containerizada com **Docker** e Laravel Sail, garantindo um ambiente de desenvolvimento consistente e de fácil reprodução.
+* **API RESTful Completa:** Endpoints para CRUD (`Create`, `Read`, `Update`, `Delete`) de produtos.
+* **Arquitetura Sólida:** Código desacoplado e organizado utilizando:
+    * **Repository Pattern:** A lógica de acesso a dados (Doctrine/MySQL e OpenSearch) é isolada em uma classe `ProductRepository`.
+    * **Injeção de Dependência:** O Service Container do Laravel é usado para gerenciar e injetar dependências como o `EntityManager` do Doctrine e o cliente do `OpenSearch`.
+    * **Form Requests:** A validação das requisições de criação e atualização é centralizada na classe `StoreProductRequest` para manter os controllers limpos e seguros.
+* **Doctrine ORM:** Utilização do Doctrine como ORM principal para o mapeamento de entidades, cumprindo o requisito central do teste.
+* **Busca Avançada com OpenSearch:** Sincronização automática de dados com um índice no OpenSearch a cada criação, atualização ou exclusão de produto, permitindo buscas textuais performáticas.
+* **Ambiente 100% Containerizado:** A aplicação roda em um ambiente Docker totalmente configurado, garantindo consistência e facilidade de reprodução.
 
 ## 🛠️ Tech Stack
 
@@ -16,12 +21,13 @@ Este projeto é uma aplicação web de gerenciamento de produtos desenvolvida co
 * **ORM:** Doctrine
 * **Banco de Dados:** MySQL 8.0
 * **Busca:** OpenSearch 2
-* **Frontend (a ser desenvolvido):** React.js / Next.js com Tailwind CSS
-* **Ambiente:** Docker / Laravel Sail
+* **Ambiente:** Docker
+
+---
 
 ## 🚀 Instalação e Execução do Ambiente Local
 
-Siga os passos abaixo para configurar e executar o projeto em seu ambiente local.
+Siga os passos abaixo para configurar e executar o projeto.
 
 **Pré-requisitos:**
 * Docker Desktop instalado e em execução.
@@ -32,106 +38,94 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente local
 git clone <URL_DO_SEU_REPOSITORIO>
 cd <NOME_DA_PASTA_DO_PROJETO>
 
-2. Configurar o Ambiente
-O projeto utiliza o Laravel Sail para gerenciar o ambiente Docker.
-
-Criar o arquivo de ambiente (.env)
-Copie o arquivo de exemplo para criar seu arquivo de configuração local.
-
-Bash
+2. Configurar o Arquivo de Ambiente (.env)
+Copie o arquivo de exemplo para criar sua configuração local.
 
 cp .env.example .env
-Garanta que o arquivo .env contenha as variáveis de banco de dados e OpenSearch que configuramos.
 
-Subir os Containers Docker
-Este comando irá baixar as imagens necessárias (pode demorar na primeira vez) e iniciar todos os serviços (Laravel, MySQL, OpenSearch).
+Abra o arquivo .env e garanta que as seguintes variáveis estejam configuradas corretamente:
 
-Bash
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=laravel # Ou o nome que preferir
+DB_USERNAME=sail
+DB_PASSWORD=password
 
-# Se estiver usando Git Bash ou WSL no Windows
-./vendor/bin/sail up -d
+# Configurações do OpenSearch
+OPENSEARCH_HOST=opensearch
+OPENSEARCH_PORT=9200
+OPENSEARCH_SCHEME=http
 
-# Se estiver usando PowerShell no Windows
-.\vendor\bin\sail up -d
-3. Instalar as Dependências
-Com os containers no ar, execute o Composer para instalar as dependências do PHP.
+3. Subir os Containers Docker
+Este comando irá iniciar todos os serviços (Laravel, MySQL, OpenSearch). A primeira vez pode demorar alguns minutos para baixar as imagens.
 
-Bash
+docker compose up -d
 
+4. Instalar Dependências e Configurar a Aplicação
+Execute os comandos abaixo, um por um, para finalizar a configuração.
+
+# Instalar dependências do PHP com o Composer
 docker compose exec laravel.test composer install
-4. Gerar a Chave da Aplicação
 
-Bash
-
+# Gerar a chave da aplicação
 docker compose exec laravel.test php artisan key:generate
-5. Executar as Migrations
-Este comando irá criar a tabela products no banco de dados MySQL.
 
-Bash
+# Publicar o arquivo de configuração do CORS
+docker compose exec laravel.test php artisan config:publish cors
 
+# Criar a estrutura da tabela 'products' no banco de dados
 docker compose exec laravel.test php artisan migrate
-6. Ajustar Permissões (Caso ocorram erros)
-Em alguns ambientes (especialmente Docker no Windows), podem ocorrer problemas de permissão na pasta storage. Se você enfrentar erros 500, execute o seguinte comando:
 
-Bash
+# (Opcional) Popular o banco de dados com 8 produtos de exemplo
+docker compose exec laravel.test php artisan db:seed
 
-docker compose exec -u root laravel.test chmod -R 777 storage bootstrap/cache
-✅ Pronto! Seu ambiente de backend está configurado e rodando. A API está acessível em http://localhost.
+✅ A API está acessível em http://localhost.
+
+🚨 Troubleshooting de Permissões (Docker no Windows)
+Durante o desenvolvimento, foram encontrados problemas persistentes de permissão de escrita nas pastas storage e bootstrap/cache devido à forma como o Docker Desktop no Windows gerencia os volumes. Caso enfrente erros 500, os seguintes comandos, executados dentro do container, podem resolver o problema:
+
+# 1. Criar a estrutura de diretórios esperada pelo Laravel
+mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions storage/framework/testing
+
+# 2. Mudar o dono das pastas para o usuário do servidor web
+chown -R www-data:www-data storage bootstrap/cache
+
+# 3. Dar as permissões corretas de escrita
+chmod -R 775 storage bootstrap/cache
+
+Para executar estes comandos de uma só vez:
+
+docker compose exec -u root laravel.test sh -c "mkdir -p storage/framework/views storage/framework/cache && chown -R www-data:www-data storage bootstrap/cache && chmod -R 775 storage bootstrap/cache"
+
+Após executar, limpe os caches do Laravel para aplicar as mudanças:
+
+docker compose exec laravel.test php artisan optimize:clear
 
 🧪 Testando a API
-Você pode usar uma ferramenta como o Postman, Insomnia ou o curl para testar os endpoints.
+Use uma ferramenta como o Postman ou o curl para testar os endpoints.
 
 Listar Todos os Produtos
 Bash
 
 docker compose exec laravel.test curl http://localhost/api/products
-Resultado esperado (inicialmente): []
-Criar um Novo Produto
-Crie um arquivo payload.json na raiz do projeto com o conteúdo:
-JSON
+Buscar Produtos (via OpenSearch)
+Bash
 
-{
-    "name": "Laptop Gamer Nitro",
-    "description": "Laptop com placa de vídeo dedicada para jogos.",
-    "price": 7800.00,
-    "category": "Eletrônicos"
-}
+docker compose exec laravel.test curl "http://localhost/api/products?search=termo_de_busca"
+Criar um Novo Produto
+Crie um arquivo payload.json com os dados do produto.
 Execute o comando POST:
-PowerShell
+Bash
 
 # No PowerShell, use aspas simples para proteger o '@'
 docker compose exec laravel.test curl -i -X POST -H "Content-Type: application/json" -d '@/var/www/html/payload.json' http://localhost/api/products
-Resultado esperado: HTTP/1.1 201 Created e o JSON do produto criado.
-Atualizar um Produto (Ex: ID 1)
-Modifique o payload.json com os novos dados.
-Execute o comando PUT:
-PowerShell
-
-# No PowerShell
-docker compose exec laravel.test curl -i -X PUT -H "Content-Type: application/json" -d '@/var/www/html/payload.json' http://localhost/api/products/1
-Resultado esperado: HTTP/1.1 200 OK e o JSON do produto atualizado.
 Deletar um Produto (Ex: ID 1)
 Bash
 
 docker compose exec laravel.test curl -i -X DELETE http://localhost/api/products/1
-Resultado esperado: HTTP/1.1 204 No Content
-Testando a Busca com OpenSearch
-Para validar a integração com o OpenSearch de forma isolada (sem depender da camada web), você pode usar o comando Artisan customizado que foi criado (TestOpenSearchCommand.php).
-
-Bash
-
-docker compose exec laravel.test php artisan test:opensearch
-Resultado esperado: Mensagens de sucesso indicando que um documento foi criado, indexado e encontrado no OpenSearch.
 🤔 Decisões de Arquitetura e Desafios
-Durante o desenvolvimento, algumas decisões foram tomadas para garantir um código limpo, manutenível e robusto.
-
-Padrão Repository: A lógica de acesso a dados foi abstraída em uma classe ProductRepository. Isso desacopla o Controller do ORM, facilitando testes e futuras manutenções. O Controller apenas orquestra o fluxo, enquanto o Repository lida com a persistência.
-
-Injeção de Dependência: O EntityManager do Doctrine e o cliente do OpenSearch são injetados via construtor no Repository e no OpenSearchServiceProvider, aproveitando o Service Container do Laravel para gerenciar as instâncias de forma eficiente.
-
-Validação com Form Requests: A validação dos dados de entrada é centralizada na classe StoreProductRequest, mantendo os métodos do Controller enxutos e focados em sua responsabilidade principal.
-
-Desafios de Ambiente: Foi enfrentada uma série de desafios relacionados à configuração do ambiente Docker no Windows, incluindo:
-
-Incompatibilidade de Pacotes: As bibliotecas da comunidade para integração do Doctrine (especialmente laravel-doctrine/migrations) se mostraram incompatíveis com o Laravel 11. A solução foi pivotar para uma abordagem híbrida e estável: utilizar as Migrations nativas do Laravel (robustas e confiáveis) em conjunto com o ORM do Doctrine (cumprindo o requisito do teste).
-Problemas de Permissão: Ocorreram múltiplos erros de permissão de escrita na pasta storage devido à forma como o Docker/WSL2 gerencia os volumes mapeados do Windows. Após diversas tentativas de chown e chmod, a solução final que se provou mais estável nos testes foi isolar a pasta storage em um Volume Nomeado do Docker.
+Padrão Repository: A lógica de acesso a dados foi abstraída para promover código limpo e testável.
+Injeção de Dependência: O Service Container do Laravel é usado para gerenciar as instâncias do EntityManager do Doctrine e do cliente do OpenSearch.
+Validação com Form Requests: A validação é centralizada na classe StoreProductRequest para manter os controllers enxutos.
+Migrations Híbridas: Devido a instabilidades dos pacotes da comunidade laravel-doctrine/migrations com o Laravel 11, foi tomada a decisão estratégica de utilizar as Migrations nativas do Laravel em conjunto com o ORM do Doctrine, cumprindo o requisito do teste da forma mais robusta possível.
